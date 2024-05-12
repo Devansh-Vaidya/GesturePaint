@@ -36,8 +36,14 @@ class App:
         self.canvas = tk.Canvas(window, bg="white", cursor="cross", width=self.vid.width, height=self.vid.height)
         self.canvas.grid(row=1, column=1)
 
+        # MediaPipe Hands
+        self.mp_hands = mp.solutions.hands
+        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.hands = self.mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
+
         # After it is called once, the update method will be automatically called every delay milliseconds
-        self.delay = 15
+        self.delay = 10
         self.update()
 
         self.window.mainloop()
@@ -57,7 +63,66 @@ class App:
             self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
             self.video_canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
+            # Process the image
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = self.hands.process(frame_rgb)
+
+            # Process the image
+            normalized_data, x_points, y_points = [], [], []
+            H, W, _ = frame.shape
+
+            results = self.hands.process(frame_rgb)
+
+            # Predict the sign and draw on the canvas
+            if results.multi_hand_landmarks:
+                for hand_landmarks in results.multi_hand_landmarks:
+                    self.mp_drawing.draw_landmarks(
+                        frame,  # image to draw
+                        hand_landmarks,  # model output
+                        self.mp_hands.HAND_CONNECTIONS,  # hand connections
+                        self.mp_drawing_styles.get_default_hand_landmarks_style(),
+                        self.mp_drawing_styles.get_default_hand_connections_style())
+
+                    for i in range(len(hand_landmarks.landmark)):
+                        x = hand_landmarks.landmark[i].x
+                        y = hand_landmarks.landmark[i].y
+
+                        x_points.append(x)
+                        y_points.append(y)
+
+                        normalized_data.append(x - min(x_points))
+                        normalized_data.append(y - min(y_points))
+
+                data = np.asarray(normalized_data)
+                # if data.shape[0] == 42:
+                #     # data = data.reshape(1, 42)
+                #     # result = model.predict(data)
+                #     # if the result is draw then call the draw function else call the eraser function
+                #     # if np.argmax(result) == 0:
+                #     x1 = hand_landmarks.landmark[8].x
+                #     y1 = hand_landmarks.landmark[8].y
+                #
+                #     x2 = hand_landmarks.landmark[4].x
+                #     y2 = hand_landmarks.landmark[4].y
+                #
+                #     # Average of the two points
+                #     x_point = (x1 + x2) / 2
+                #     y_point = (y1 + y2) / 2
+
+                # draw(frame, x_point, y_point)
+                # elif np.argmax(result) == 1:
+                #     erase(frame, x_points, y_points)
+
+                normalized_data = []
         self.window.after(self.delay, self.update)
+
+
+def draw(frame, x_point, y_point):
+    # Draw on the canvas
+    x = int(x_point) - 10
+    y = int(y_point) - 10
+
+    cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
 
 
 class MyVideoCapture:
@@ -76,11 +141,12 @@ class MyVideoCapture:
             ret, frame = self.vid.read()
             if ret:
                 # Return a boolean success flag and the current frame converted to BGR
-                return (ret, cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+                frame = cv2.flip(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), 1)
+                return ret, frame
             else:
-                return (ret, None)
+                return ret, None
         else:
-            return (None, None)
+            return None, None
 
     # Release the video source when the object is destroyed
     def __del__(self):
