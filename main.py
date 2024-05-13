@@ -3,9 +3,9 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import tensorflow as tf
-import time
 import PIL
 from PIL import Image, ImageTk
+from data_prepocessing import classifier_set
 
 
 class App:
@@ -14,17 +14,18 @@ class App:
         self.window = window
         self.window.title(window_title)
         self.video_source = video_source
+        self.model = tf.keras.models.load_model('gesture_paint_model.h5')
 
         # open video source (by default this will try to open the computer webcam)
         self.vid = MyVideoCapture(self.video_source)
 
+        self.fill_color = "black"
         self.tools = tk.Frame(window)
         self.tools.grid(row=0, column=1)
 
         # Labels for brush and eraser
         self.brush_label = tk.Label(self.tools, text="Brush", bg="black")
         self.brush_label.grid(row=0, column=0)
-
         self.eraser_label = tk.Label(self.tools, text="Eraser", bg="black")
         self.eraser_label.grid(row=0, column=1)
 
@@ -38,22 +39,15 @@ class App:
 
         # MediaPipe Hands
         self.mp_hands = mp.solutions.hands
-        self.mp_drawing_styles = mp.solutions.drawing_styles
-        self.mp_drawing = mp.solutions.drawing_utils
         self.hands = self.mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_drawing_styles = mp.solutions.drawing_styles
 
         # After it is called once, the update method will be automatically called every delay milliseconds
         self.delay = 10
         self.update()
 
         self.window.mainloop()
-
-    def snapshot(self):
-        # Get a frame from the video source
-        ret, frame = self.vid.get_frame()
-
-        if ret:
-            cv2.imwrite("frame-" + time.strftime("%d-%m-%Y-%H-%M-%S") + ".jpg", cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
 
     def update(self):
         # Get a frame from the video source
@@ -71,18 +65,9 @@ class App:
             normalized_data, x_points, y_points = [], [], []
             H, W, _ = frame.shape
 
-            results = self.hands.process(frame_rgb)
-
             # Predict the sign and draw on the canvas
             if results.multi_hand_landmarks:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    self.mp_drawing.draw_landmarks(
-                        frame,  # image to draw
-                        hand_landmarks,  # model output
-                        self.mp_hands.HAND_CONNECTIONS,  # hand connections
-                        self.mp_drawing_styles.get_default_hand_landmarks_style(),
-                        self.mp_drawing_styles.get_default_hand_connections_style())
-
                     for i in range(len(hand_landmarks.landmark)):
                         x = hand_landmarks.landmark[i].x
                         y = hand_landmarks.landmark[i].y
@@ -94,47 +79,57 @@ class App:
                         normalized_data.append(y - min(y_points))
 
                 data = np.asarray(normalized_data)
-                # if data.shape[0] == 42:
-                #     # data = data.reshape(1, 42)
-                #     # result = model.predict(data)
-                #     # if the result is draw then call the draw function else call the eraser function
-                #     # if np.argmax(result) == 0:
-                #     x1 = hand_landmarks.landmark[8].x
-                #     y1 = hand_landmarks.landmark[8].y
-                #
-                #     x2 = hand_landmarks.landmark[4].x
-                #     y2 = hand_landmarks.landmark[4].y
-                #
-                #     # Average of the two points
-                #     x_point = (x1 + x2) / 2
-                #     y_point = (y1 + y2) / 2
+                if data.shape[0] == 42:
+                    data = data.reshape(1, 42)
+                    output = np.argmax(self.model.predict(data))
 
-                # draw(frame, x_point, y_point)
-                # elif np.argmax(result) == 1:
-                #     erase(frame, x_points, y_points)
+                    prediction = classifier_set[output]
+                    print(output, prediction)
+
+                    if prediction == 'draw':
+                        self.draw(hand_landmarks, 'black', 'green', 'black')
+
+                    elif prediction == 'erase':
+                        self.draw(hand_landmarks, 'white', 'black', 'green')
+
+                    elif prediction == 'black':
+                        self.fill_color = "black"
+
+                    elif prediction == 'red':
+                        self.fill_color = "red"
+
+                    elif prediction == 'green':
+                        self.fill_color = "green"
+
+                    elif prediction == 'blue':
+                        self.fill_color = "blue"
 
                 normalized_data = []
         self.window.after(self.delay, self.update)
 
-
-def draw(frame, x_point, y_point):
-    # Draw on the canvas
-    x = int(x_point) - 10
-    y = int(y_point) - 10
-
-    cv2.circle(frame, (x, y), 5, (0, 255, 0), -1)
+    def draw(self, hand_landmarks, fill_color, brush_label_color, eraser_label_color):
+        x_point = hand_landmarks.landmark[8].x
+        y_point = hand_landmarks.landmark[8].y
+        self.fill_color = fill_color
+        radius = 6
+        self.canvas.create_oval(x_point - radius, y_point - radius, x_point + radius, y_point + radius,
+                                fill=self.fill_color, outline="")
 
 
 class MyVideoCapture:
     def __init__(self, video_source=0):
         # Open the video source
         self.vid = cv2.VideoCapture(video_source)
+
+        self.vid.set(cv2.CAP_PROP_FRAME_WIDTH, 200)
+        self.vid.set(cv2.CAP_PROP_FRAME_HEIGHT, 100)
+
+        # Get width and height of the video source
+        self.width = self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.height = self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+
         if not self.vid.isOpened():
             raise ValueError("Unable to open video source", video_source)
-
-        # Get video source width and height
-        self.width = 800
-        self.height = 600
 
     def get_frame(self):
         if self.vid.isOpened():
@@ -156,7 +151,7 @@ class MyVideoCapture:
 
 def main():
     # Create a window and pass it to the Application object
-    App(tk.Tk(), "Tkinter and OpenCV")
+    App(tk.Tk(), "Gesture Paint")
 
 
 if __name__ == "__main__":
