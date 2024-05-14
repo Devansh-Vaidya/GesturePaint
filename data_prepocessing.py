@@ -5,32 +5,34 @@ import numpy as np
 from mediapipe import solutions
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-classifier_set = {
-    0: 'draw',
-    1: 'black',
-    2: 'red',
-    3: 'erase',
-    4: 'green',
-    5: 'blue',
-}
 
-
-# Process the data and save it to a file
 def process_data(path):
+    """
+    Process the data in the directory.
+    Args:
+        path (str): Path to the directory containing the data.
+
+    Returns:
+        dict: Dictionary containing the data and labels.
+    """
     data_label_dict = {}
     hands = solutions.hands.Hands(static_image_mode=True, max_num_hands=2)
-    total_count = 0
     for directory in os.listdir(path):
         directory_path = os.path.join(path, directory)
         if os.path.isdir(directory_path):
-            count = process_images(directory_path, hands, total_count, directory, data_label_dict)
-            total_count += count
+            process_images(directory_path, hands, directory, data_label_dict)
     return data_label_dict
 
 
-# Process the images in the directory
-def process_images(path, hands, total_count, directory="", data_label_dict=None):
-    count = 0
+def process_images(path, hands, directory="", data_label_dict=None):
+    """
+    Process the images in the directory.
+    Args:
+        path (str): Path to the directory containing the images.
+        hands (mediapipe.solutions.hands.Hands): Hands object.
+        directory (str, optional): Directory name. Defaults to "".
+        data_label_dict (dict, optional): Dictionary containing the data and labels. Defaults to None.
+    """
     for img in os.listdir(path):
         img_path = os.path.join(path, img)
 
@@ -41,12 +43,16 @@ def process_images(path, hands, total_count, directory="", data_label_dict=None)
         img_rgb = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
         landmarks = hands.process(img_rgb)
         process_img(landmarks, directory, data_label_dict)
-        count += 1
-    return count
 
 
-# Process the image
 def process_img(landmarks, directory, data_label_dict):
+    """
+    Process the landmarks of the image.
+    Args:
+        landmarks (mediapipe.solutions.hands.Hands.process): Landmarks of the image.
+        directory (str): Directory name.
+        data_label_dict (dict): Dictionary containing the data and labels.
+    """
     x_points = []
     y_points = []
     normalized_data = []
@@ -67,8 +73,12 @@ def process_img(landmarks, directory, data_label_dict):
             normalized_data = []
 
 
-# Augment the data
 def augment_data(path):
+    """
+    Augment the data in the directory.
+    Args:
+        path (str): Path to the directory containing the data.
+    """
     subdirs = [x[0] for x in os.walk(path)]
     for subdir in subdirs:
         img_paths = [os.path.join(subdir, f) for f in os.listdir(subdir) if f.endswith('.jpeg')]
@@ -77,17 +87,19 @@ def augment_data(path):
                 augment_image(img_path)
 
 
-# Augment the image
 def augment_image(img_path):
+    """
+    Augment the image.
+    Args:
+        img_path (str): Path to the image.
+    """
     img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
     img = np.expand_dims(img, axis=0)
     img_dir_path = img_path.split('.')[1]
     datagen = ImageDataGenerator(
         rotation_range=10,
-        brightness_range=[0.4, 1.0],
-        shear_range=0.1,
         zoom_range=0.1,
-        fill_mode='nearest'
+        horizontal_flip=True
     )
 
     # Iterator
@@ -100,15 +112,21 @@ def augment_image(img_path):
         cv2.imwrite(f'.{img_dir_path}_{i}.jpeg', cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
 
-# Save the data to a file
 def save_data(data_label_dict):
+    """
+    Save the data to a JSON file.
+    Args:
+        data_label_dict (dict): Dictionary containing the data and labels.
+    """
     with open('data.json', 'w') as file:
         json.dump(data_label_dict, file)
 
 
-# Main functionr
 def main():
-    # augment_data('./data')
+    """
+    Main function to process the data.
+    """
+    # augment_data('./data/train')
     data_label_dict = process_data('./data/train')
     save_data(data_label_dict)
 
