@@ -1,7 +1,7 @@
-import tkinter as tk
+import numpy as np
 import cv2
 import mediapipe as mp
-import numpy as np
+import tkinter as tk
 from tensorflow.keras import models
 from PIL import Image, ImageTk
 from ml_training import classifier_set

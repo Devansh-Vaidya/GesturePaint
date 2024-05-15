@@ -86,13 +86,12 @@ def train_model(model: tf.keras.models.Sequential, data: np.ndarray, labels: np.
         tensorflow.python.keras.engine.training.Model: Training history of the model.
         tensorflow.python.keras.engine.sequential.Sequential: Trained model.
     """
-    x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.01, shuffle=True, stratify=labels)
-    training_history = model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs)
+    x_train, x_test, y_train, y_test = train_test_split(data, labels, test_size=0.2, shuffle=True, stratify=labels)
+    training_history = model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)
     score = model.evaluate(x_test, y_test, verbose=0)
     print("Test loss:", score[0])
     print("Test accuracy:", score[1])
     return training_history, model
-
 
 def plot_learning_curve(training: tf.keras.callbacks.History):
     """
@@ -101,7 +100,7 @@ def plot_learning_curve(training: tf.keras.callbacks.History):
         training (tf.keras.callbacks.History): Training history of the model.
     """
     plt.plot(training.history['loss'])
-    # plt.plot(training.history['val_loss'])
+    plt.plot(training.history['val_loss'])
     plt.title('Learning Curve')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')

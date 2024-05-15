@@ -1,9 +1,9 @@
-import cv2
 import os
 import json
 import numpy as np
-from mediapipe import solutions
+import cv2
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from mediapipe import solutions
 
 
 def process_data(path: str) -> dict:
@@ -126,6 +126,7 @@ def main():
     """
     Main function to process the data.
     """
+    # Uncomment to augment the data
     # augment_data('./data/train')
     data_label_dict = process_data('./data/train')
     save_data(data_label_dict)
