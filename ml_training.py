@@ -1,5 +1,4 @@
 import json
-
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -12,17 +11,17 @@ from sklearn.model_selection import train_test_split
 classifier_set = {0: 'black', 1: 'blue', 2: 'draw', 3: 'erase', 4: 'green', 5: 'red'}
 
 
-def extract_data_labels(data_labels, data, labels):
+def extract_data_labels(data_labels: dict, data: list, labels: list):
     """
     Extract the data and labels from the dictionary.
     Args:
         data_labels (dict): Dictionary containing the data and labels.
-        data (numpy.ndarray): Data to be extracted.
-        labels (numpy.ndarray): Labels to be extracted.
+        data (list): Data to be extracted.
+        labels (list): Labels to be extracted.
 
     Returns:
-        data (numpy.ndarray): Extracted data.
-        labels (numpy.ndarray): Extracted labels.
+        data (np.ndarray): Extracted data.
+        labels (np.ndarray): Extracted labels.
     """
     for key, value in data_labels.items():
         # Convert string of list to list
@@ -72,13 +71,14 @@ def create_model():
     return model
 
 
-def train_model(model, data, labels, batch_size=32, epochs=100):
+def train_model(model: tf.keras.models.Sequential, data: np.ndarray, labels: np.ndarray, batch_size: int = 32,
+                epochs: int = 100):
     """
     Train the model.
     Args:
-        model (tensorflow.python.keras.engine.sequential.Sequential): Model to be trained.
-        data (numpy.ndarray): Data to be used for training.
-        labels (numpy.ndarray): Labels to be used for training.
+        model (tf.keras.models.Sequential): Model to be trained.
+        data (np.ndarray): Data to be used for training.
+        labels (np.ndarray): Labels to be used for training.
         batch_size (int, optional): Batch size of the model. Defaults to 32.
         epochs (int, optional): Number of epochs for training. Defaults to 100.
 
@@ -94,11 +94,11 @@ def train_model(model, data, labels, batch_size=32, epochs=100):
     return training_history, model
 
 
-def plot_learning_curve(training):
+def plot_learning_curve(training: tf.keras.callbacks.History):
     """
     Plot the learning curve.
     Args:
-        training (tensorflow.python.keras.engine.training.Model): Training history of the model.
+        training (tf.keras.callbacks.History): Training history of the model.
     """
     plt.plot(training.history['loss'])
     # plt.plot(training.history['val_loss'])

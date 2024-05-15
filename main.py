@@ -2,8 +2,7 @@ import tkinter as tk
 import cv2
 import mediapipe as mp
 import numpy as np
-import tensorflow as tf
-import PIL
+from tensorflow.keras import models
 from PIL import Image, ImageTk
 from ml_training import classifier_set
 
@@ -13,20 +12,21 @@ class App:
     Class that creates the GUI for the application, handles the video feed, and processes the image.
     """
 
-    def __init__(self, window, window_title, video_source=0):
+    def __init__(self, window: tk.Tk, window_title: str, video_source: int = 0):
         """
         Initialize the application.
         Args:
-            window (tkinter.Tk): Tkinter window object.
+            window (tk.Tk): Tkinter window object.
             window_title (str): Title of the window.
             video_source (int, optional): Video source. Defaults to 0.
         """
         # Initialize the window and other variables
         self.photo = None
         self.window = window
+        self.window.resizable(False, False)
         self.window.title(window_title)
         self.video_source = video_source
-        self.model = tf.keras.models.load_model('gesture_paint_model.h5')
+        self.model = models.load_model('gesture_paint_model.keras')
 
         # Open the video source
         self.vid = MyVideoCapture(self.video_source)
@@ -37,10 +37,14 @@ class App:
         self.tools.grid(row=0, column=1)
 
         # Labels for brush and eraser
-        self.brush_label = tk.Label(self.tools, text="Brush", bg="black")
+        self.brush_label = tk.Label(self.tools, text="Selected: Brush (Black)")
         self.brush_label.grid(row=0, column=0)
-        self.eraser_label = tk.Label(self.tools, text="Eraser", bg="black")
-        self.eraser_label.grid(row=0, column=1)
+
+        # Brush size for drawing and erasing
+        self.brush_size = 6
+
+        # Last selected color
+        self.last_color = "black"
 
         # Create a video canvas to display the video feed
         self.video_canvas = tk.Canvas(window, width=self.vid.width, height=self.vid.height)
@@ -57,7 +61,7 @@ class App:
         self.mp_drawing_styles = mp.solutions.drawing_styles
 
         # Set the delay to get a smooth video feed
-        self.delay = 10
+        self.delay = 1
         self.update()
 
         self.window.mainloop()
@@ -71,7 +75,7 @@ class App:
 
         if ret:
             # Add the frame to the video canvas
-            self.photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(frame))
+            self.photo = ImageTk.PhotoImage(image=Image.fromarray(frame))
             self.video_canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
             # Process the image
@@ -100,38 +104,42 @@ class App:
                     output = np.argmax(self.model.predict(data))
 
                     prediction = classifier_set[output]
-                    print(self.model.predict(data), output, prediction)
+                    print(output, prediction)
 
-                    if prediction == 'draw':
-                        self.draw(hand_landmarks, 'black', 'green', 'black')
-
-                    elif prediction == 'erase':
-                        self.draw(hand_landmarks, 'white', 'black', 'green')
-
-                    elif prediction == 'black':
-                        self.fill_color = "black"
-
-                    elif prediction == 'red':
-                        self.fill_color = "red"
-
-                    elif prediction == 'green':
-                        self.fill_color = "green"
-
-                    elif prediction == 'blue':
-                        self.fill_color = "blue"
+                    if prediction == 'erase':
+                        self.fill_color = "white"
+                        self.brush_size = 30
+                        self.brush_label.config(text="Selected: Eraser")
+                        self.draw(hand_landmarks, self.brush_size)
+                    else:
+                        self.brush_size = 6
+                        if prediction == 'draw':
+                            self.fill_color = self.fill_color if self.fill_color != "white" else self.last_color
+                            self.brush_label.config(text=f"Selected: Brush ({self.fill_color.capitalize()})")
+                            self.draw(hand_landmarks, self.brush_size)
+                        else:
+                            self.brush_label.config(text=f"Selected: Brush ({self.fill_color.capitalize()})")
+                            self.fill_color = prediction
+                            self.last_color = prediction
 
                 normalized_data = []
         self.window.after(self.delay, self.update)
 
-    def draw(self, hand_landmarks, fill_color, brush_label_color, eraser_label_color):
-        self.brush_label.config(bg=brush_label_color)
-        self.eraser_label.config(bg=eraser_label_color)
-        x_point = hand_landmarks.landmark[8].x
-        y_point = hand_landmarks.landmark[8].y
-        self.fill_color = fill_color
-        radius = 6
-        self.canvas.create_oval(x_point - radius, y_point - radius, x_point + radius, y_point + radius,
+    def draw(self, hand_landmarks: mp.solutions.hands.Hands, brush_size: int = 6):
+        """
+        Draw on the canvas.
+        Args:
+            hand_landmarks (mp.solutions.hands.Hands): Hand landmarks.
+            brush_size (int, optional): Brush size. Defaults to 6.
+        """
+        x_point = int(hand_landmarks.landmark[8].x * self.vid.width)
+        y_point = int(hand_landmarks.landmark[8].y * self.vid.height)
+
+        self.canvas.create_oval(x_point - brush_size, y_point - brush_size, x_point + brush_size, y_point + brush_size,
                                 fill=self.fill_color, outline="")
+        if self.fill_color == "white":
+            self.canvas.create_oval(x_point - 2, y_point - 2, x_point + 2, y_point + 2,
+                                    fill="red", outline="")
 
 
 class MyVideoCapture:
@@ -139,7 +147,7 @@ class MyVideoCapture:
     Class that captures video frames from a video source.
     """
 
-    def __init__(self, video_source=0):
+    def __init__(self, video_source: int = 0):
         """
         Initialize the video capture object.
         Args:

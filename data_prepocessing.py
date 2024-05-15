@@ -6,7 +6,7 @@ from mediapipe import solutions
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
-def process_data(path):
+def process_data(path: str) -> dict:
     """
     Process the data in the directory.
     Args:
@@ -24,12 +24,12 @@ def process_data(path):
     return data_label_dict
 
 
-def process_images(path, hands, directory="", data_label_dict=None):
+def process_images(path: str, hands, directory: str = "", data_label_dict=None):
     """
     Process the images in the directory.
     Args:
         path (str): Path to the directory containing the images.
-        hands (mediapipe.solutions.hands.Hands): Hands object.
+        hands (solutions.hands.Hands): Hands object.
         directory (str, optional): Directory name. Defaults to "".
         data_label_dict (dict, optional): Dictionary containing the data and labels. Defaults to None.
     """
@@ -45,11 +45,11 @@ def process_images(path, hands, directory="", data_label_dict=None):
         process_img(landmarks, directory, data_label_dict)
 
 
-def process_img(landmarks, directory, data_label_dict):
+def process_img(landmarks: solutions.hands.Hands, directory: str, data_label_dict: dict):
     """
     Process the landmarks of the image.
     Args:
-        landmarks (mediapipe.solutions.hands.Hands.process): Landmarks of the image.
+        landmarks (solutions.hands.Hands.process): Landmarks of the image.
         directory (str): Directory name.
         data_label_dict (dict): Dictionary containing the data and labels.
     """
@@ -73,7 +73,7 @@ def process_img(landmarks, directory, data_label_dict):
             normalized_data = []
 
 
-def augment_data(path):
+def augment_data(path: str):
     """
     Augment the data in the directory.
     Args:
@@ -87,7 +87,7 @@ def augment_data(path):
                 augment_image(img_path)
 
 
-def augment_image(img_path):
+def augment_image(img_path: str):
     """
     Augment the image.
     Args:
@@ -112,7 +112,7 @@ def augment_image(img_path):
         cv2.imwrite(f'.{img_dir_path}_{i}.jpeg', cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
 
 
-def save_data(data_label_dict):
+def save_data(data_label_dict: dict):
     """
     Save the data to a JSON file.
     Args:
