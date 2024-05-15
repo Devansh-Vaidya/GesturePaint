@@ -122,7 +122,6 @@ class App:
                             self.fill_color = prediction
                             self.last_color = prediction
 
-                normalized_data = []
         self.window.after(self.delay, self.update)
 
     def draw(self, hand_landmarks: mp.solutions.hands.Hands, brush_size: int = 6):
@@ -188,7 +187,6 @@ class MyVideoCapture:
         else:
             return None, None
 
-    # Release the video source when the object is destroyed
     def __del__(self):
         """
         Release the video source when the object is destroyed.
