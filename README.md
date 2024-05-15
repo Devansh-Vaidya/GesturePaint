@@ -1,10 +1,6 @@
 # GesturePaint
 
-GesturePaint is an innovative Python application designed to empower users with the ability to express themselves
-through hand gestures on a digital canvas. The application seamlessly integrates machine learning methodologies, notably
-harnessing MediaPipe for precise hand landmark recognition and Multilayer Perception for robust gesture classification.
-Using OpenCV for real-time video feed capture from the webcam, coupled with the versatility of Tkinter GUI, offers users
-a platform to unleash their creativity.
+GesturePaint is an innovative Python application designed to empower users with the ability to express themselves through hand gestures on a digital canvas. The application seamlessly integrates machine learning methodologies, notably harnessing MediaPipe for precise hand landmark recognition and Multilayer Perception for robust gesture classification. Using OpenCV for real-time video feed capture from the webcam, coupled with the versatility of Tkinter GUI, offers users a platform to unleash their creativity.
 
 ## Table of Contents
 
@@ -67,10 +63,7 @@ python main.py
 
 ## Dataset
 
-The dataset used in this project was meticulously curated and created by me. It comprises images of hand gestures under
-various lighting conditions and backgrounds. The dataset plays a crucial role in training and evaluating the machine
-learning models implemented in this project, ensuring robust performance and accuracy. For inquiries regarding the
-dataset or potential collaborations, please contact me.
+The dataset used in this project was meticulously curated and created by me. It comprises images of hand gestures under various lighting conditions and backgrounds. The dataset plays a crucial role in training and evaluating the machine learning models implemented in this project, ensuring robust performance and accuracy. For inquiries regarding the dataset or potential collaborations, please contact me.
 
 ## Data Preprocessing
 
@@ -88,19 +81,15 @@ Model is created and trained inside the file `model_training.py`. The file inclu
 - Loading the data from the `data.json` file.
 - Creating a Multilayer Perceptron (MLP) model using Keras.
 
-The model `gesture_paint_model.keras` is available and can be used directly for prediction. Hence, it is not necessary to run
-this file.
+The model `gesture_paint_model.keras` is available and can be used directly for prediction. Hence, it is not necessary to run this file.
 
 ## Credits
 
-I would like to extend my gratitude to the following individuals and institutions for their invaluable contributions to
-this project:
+I would like to extend my gratitude to the following individuals and institutions for their invaluable contributions to this project:
 
-- **[Concordia University](https://www.concordia.ca/)**: I am thankful to my alma mater for providing me with the
-  essential courses and knowledge that laid the foundation for this project.
+- **[Concordia University](https://www.concordia.ca/)**: I am thankful to my alma mater for providing me with the essential courses and knowledge that laid the foundation for this project.
 
-- **[Coursera](https://www.coursera.org/)**: Special thanks to Coursera for offering the course "Machine Learning
-  Specialization" by DeepLearning.AI, which I completed as part of my learning journey.
+- **[Coursera](https://www.coursera.org/)**: Special thanks to Coursera for offering the course "Machine Learning Specialization" by DeepLearning.AI, which I completed as part of my learning journey.
 
 ## License
 
