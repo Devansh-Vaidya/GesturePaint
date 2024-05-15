@@ -72,19 +72,6 @@ various lighting conditions and backgrounds. The dataset plays a crucial role in
 learning models implemented in this project, ensuring robust performance and accuracy. For inquiries regarding the
 dataset or potential collaborations, please contact me.
 
-The dataset used in this project is a combination of two sources:
-
-- **American Sign Language Dataset from [Kaggle](https://www.kaggle.com/)**: This dataset provides a collection of
-  images representing various signs in American Sign Language (ASL). It was instrumental in training the
-  machine-learning model to recognize hand gestures accurately.
-
-- **Single Hand Finger Count Dataset from [Zenodo](https://zenodo.org/)**: This dataset comprises images of hand
-  gestures representing different counts of fingers. It played a crucial role in training the model to recognize and
-  interpret finger counts accurately.
-
-Combining these datasets provided a diverse and comprehensive training set, enabling the model to effectively recognize
-both ASL signs and finger counts.
-
 ## Data Preprocessing
 
 The dataset was prepocessed in the file `data_preprocessing.py`. The preprocessing includes:
