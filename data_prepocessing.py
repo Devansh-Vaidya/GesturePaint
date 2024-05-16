@@ -37,7 +37,7 @@ def process_images(path: str, hands, directory: str = "", data_label_dict=None):
         img_path = os.path.join(path, img)
 
         # Check if the file is an image
-        if not img_path.endswith('.jpeg'):
+        if not img.endswith('.jpg') and not img.endswith('.jpeg') and not img.endswith('.png'):
             continue
 
         img_rgb = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
@@ -81,9 +81,10 @@ def augment_data(path: str):
     """
     subdirs = [x[0] for x in os.walk(path)]
     for subdir in subdirs:
-        img_paths = [os.path.join(subdir, f) for f in os.listdir(subdir) if f.endswith('.jpeg')]
+        img_paths = [os.path.join(subdir, f) for f in os.listdir(subdir) if
+                     f.endswith('.jpg') or f.endswith('.jpeg') or f.endswith('.png')]
         for img_path in img_paths:
-            if img_path.endswith('.jpeg'):
+            if img_path.endswith('.jpg') or img_path.endswith('.jpeg') or img_path.endswith('.png'):
                 augment_image(img_path)
 
 
